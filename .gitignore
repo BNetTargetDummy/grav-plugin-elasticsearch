@@ -1,0 +1,18 @@
+# OS Generated
+.DS_Store*
+ehthumbs.db
+Thumbs.db
+
+# IDE PhpStorm
+.idea/
+
+# Composer Vendors
+vendor/
+
+# NPM Modules
+node_modules/
+npm-debug.log
+
+# Compiled
+**/.sass-cache
+**/*.map
