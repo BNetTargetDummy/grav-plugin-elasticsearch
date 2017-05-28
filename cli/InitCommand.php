@@ -34,25 +34,39 @@ class InitCommand extends ConsoleCommand
         $this->getRoutes();
 
         foreach ($this->route as $route => $title) {
-            $res = $this->getHtmlContent($this->host . $route);
-            $this->output->writeln($res);
+            try {
+                $res = $this->getHtmlContent($this->host . $route);
+
+                $this->output->writeln('<green>Successful request on ' . $route . '</green>');
+            } catch (\Exception $e) {
+                $this->output->writeln('<red>[' . $route . '] ' . $e->getMessage() . '</red>');
+            }
         }
     }
 
     /**
      * @param string $url
      * @return string
+     * @throws \Exception
      */
     private function getHtmlContent(string $url): string
     {
-        // TODO: Error Handling
-
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
         $res = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
         curl_close($curl);
+
+        if ($res === false) {
+            throw new \Exception('Error CURL: ' . curl_error($curl));
+        }
+
+        if ($httpCode !== 200) {
+            throw new \Exception('Error CURL: Got a ' . $httpCode . ' status code instead of a 200');
+        }
 
         return $res;
     }
