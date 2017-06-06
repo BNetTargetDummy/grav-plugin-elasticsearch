@@ -6,6 +6,7 @@ use Grav\Common\Grav;
 use Grav\Common\Page\Collection;
 use Grav\Console\ConsoleCommand;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\DomCrawler\Crawler;
 
 class InitCommand extends ConsoleCommand
 {
@@ -35,9 +36,19 @@ class InitCommand extends ConsoleCommand
 
         foreach ($this->route as $route => $title) {
             try {
-                $res = $this->getHtmlContent($this->host . $route);
+                $content = $this->getHtmlContent($this->host . $route);
 
                 $this->output->writeln('<green>Successful request on ' . $route . '</green>');
+
+                $crawler = new Crawler($content);
+
+                $isWithArticle = $crawler->filter('article.content')->count();
+
+                if($isWithArticle) {
+                    $content = $crawler->filter('div.container');
+                } else {
+                    $content = $crawler->filter('article.content');
+                }
             } catch (\Exception $e) {
                 $this->output->writeln('<red>[' . $route . '] ' . $e->getMessage() . '</red>');
             }
