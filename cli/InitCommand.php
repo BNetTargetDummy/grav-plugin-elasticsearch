@@ -6,28 +6,43 @@ use Grav\Common\Grav;
 use Grav\Common\Page\Collection;
 use Grav\Console\ConsoleCommand;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\DomCrawler\Crawler;
 
 class InitCommand extends ConsoleCommand
 {
     private $host;
+    private $force;
     private $route = array();
 
     protected function configure()
     {
         $this
             ->setName('init')
+            ->setAliases(['update'])
             ->addArgument(
                 'host',
                 InputArgument::REQUIRED,
                 'The host that should be scrap'
             )
-            ->setHelp('Init the elasticsearch Node with all routes');
+            ->addOption(
+                'force',
+                'f',
+                InputOption::VALUE_NONE,
+                'Clear the database if present'
+            )
+            ->setDescription('Add all the route to the Elastic Search Database');
     }
 
     protected function serve()
     {
         $this->host = $this->input->getArgument('host');
+
+        $this->force = $this->input->getOption('force');
+
+        if($this->force) {
+            $this->clearDatabase();
+        }
 
         $this->output->writeln('Init ElasticSearch with <cyan>' . $this->host . '</cyan>');
         $this->initGrav();
@@ -43,11 +58,16 @@ class InitCommand extends ConsoleCommand
 
                 $contentClean = strip_tags($content);
 
-                $this->addToElasticSearch($route, $title, $contentClean);
+                $this->addOrUpdateToElasticSearch($route, $title, $contentClean);
             } catch (\Exception $e) {
                 $this->output->writeln('<red>[' . $route . '] ' . $e->getMessage() . '</red>');
             }
         }
+    }
+
+    private function clearDatabase(): void
+    {
+        $this->output->writeln('<red>Clearing the database</red>');
     }
 
     /**
@@ -56,7 +76,7 @@ class InitCommand extends ConsoleCommand
      * @param string $content
      * @return bool
      */
-    private function addToElasticSearch(string $route, string $title, string $content): bool
+    private function addOrUpdateToElasticSearch(string $route, string $title, string $content): bool
     {
         $this->output->writeln($content);
         return false;
