@@ -37,22 +37,29 @@ class InitCommand extends ConsoleCommand
         foreach ($this->route as $route => $title) {
             try {
                 $content = $this->getHtmlContent($this->host . $route);
-
                 $this->output->writeln('<green>Successful request on ' . $route . '</green>');
 
-                $crawler = new Crawler($content);
+                $content = $this->getContainerHtml($content);
 
-                $isWithArticle = $crawler->filter('article.content')->count();
+                $contentClean = strip_tags($content);
 
-                if($isWithArticle) {
-                    $content = $crawler->filter('div.container');
-                } else {
-                    $content = $crawler->filter('article.content');
-                }
+                $this->addToElasticSearch($route, $title, $contentClean);
             } catch (\Exception $e) {
                 $this->output->writeln('<red>[' . $route . '] ' . $e->getMessage() . '</red>');
             }
         }
+    }
+
+    /**
+     * @param string $route
+     * @param string $title
+     * @param string $content
+     * @return bool
+     */
+    private function addToElasticSearch(string $route, string $title, string $content): bool
+    {
+        $this->output->writeln($content);
+        return false;
     }
 
     /**
@@ -80,6 +87,26 @@ class InitCommand extends ConsoleCommand
         }
 
         return $res;
+    }
+
+    /**
+     * Parse the page, and according to the page, get either article.content, or div.container
+     * @param string $content
+     * @return string
+     */
+    private function getContainerHtml(string $content): string
+    {
+        $crawler = new Crawler($content);
+
+        $isWithArticle = $crawler->filter('article.content')->count();
+
+        if($isWithArticle) {
+            $content = $crawler->filter('article.content');
+        } else {
+            $content = $crawler->filter('div.container');
+        }
+
+        return $content->html();
     }
 
     private function getRoutes()
