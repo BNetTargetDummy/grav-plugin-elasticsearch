@@ -25,7 +25,6 @@ form:
           type: tab
           title: Features
           fields:
-
             enabled:
               type: toggle
               label: Plugin status
@@ -40,18 +39,31 @@ form:
               type: text
               label: Disabled text
               help: Text to add to the top of a page
-
+            maxNumberOfResults:
+              type: int
+              label: Number of results displayed
+              default: 10
+            route.api:
+              type: text
+              label: Route for the search API
+              default: /searchApi
         base:
           type: tab
-          title: Hosts
+          title: ElasticSearch
           fields:
-
+            elasticsearch.index:
+              type: text
+              label: Index in ElasticSearch
+              default: data
+            elasticsearch.type:
+              type: text
+              label: Type in ElasticSearch
+              default: pages
             base.hosts:
               type: list
               style: vertical
               title: Hosts
               fields:
-
                 .scheme:
                   type: select
                   label: Transport Scheme

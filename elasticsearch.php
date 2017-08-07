@@ -4,6 +4,7 @@ namespace Grav\Plugin;
 
 use Elasticsearch\ClientBuilder;
 use Grav\Common\Plugin;
+use RocketTheme\Toolbox\Event\Event;
 
 /**
  * Class ElasticsearchPlugin
@@ -56,8 +57,7 @@ class ElasticsearchPlugin extends Plugin
 
         $search = $_POST['search'];
 
-        // TODO: Use config data to create
-        $clientES = ClientBuilder::create()->build();
+        $clientES = ClientBuilder::create()->setHosts($this->config->get('plugins.elasticsearch.base.hosts'))->build();
 
         $params = [
             'index' => $this->config->get('plugins.elasticsearch.elasticsearch.index') ?? 'data',

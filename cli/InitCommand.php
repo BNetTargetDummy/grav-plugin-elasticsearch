@@ -24,8 +24,7 @@ class InitCommand extends ConsoleCommand
     {
         parent::__construct($name);
 
-        // TODO: Use config data to create
-        $this->clientES = ClientBuilder::create()->build();
+        $this->clientES = ClientBuilder::create()->setHosts($this->config->get('plugins.elasticsearch.base.hosts'))->build();
     }
 
     protected function configure()

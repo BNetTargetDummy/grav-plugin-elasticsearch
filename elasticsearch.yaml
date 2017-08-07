@@ -1,7 +1,0 @@
-enabled: true
-maxNumberOfResults: 10
-route:
-  api: /searchApi
-elasticsearch:
-  index: targetdummy
-  type: pages
