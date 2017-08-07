@@ -1,8 +1,9 @@
 <?php
+
 namespace Grav\Plugin;
 
+use Elasticsearch\ClientBuilder;
 use Grav\Common\Plugin;
-use RocketTheme\Toolbox\Event\Event;
 
 /**
  * Class ElasticsearchPlugin
@@ -37,27 +38,86 @@ class ElasticsearchPlugin extends Plugin
             return;
         }
 
-        // Enable the main event we are interested in
-        $this->enable([
-            'onPageContentRaw' => ['onPageContentRaw', 0]
-        ]);
+        $uri = $this->grav['uri'];
+        $route = $this->config->get('plugins.elasticsearch.route.api');
+
+        if ($this->getMethod() === 'post' && $route && $route == $uri->path()) {
+            $this->enable([
+                'onPageInitialized' => ['onPageInitialized', 0]
+            ]);
+        }
     }
 
-    /**
-     * Do some work for this event, full details of events can be found
-     * on the learn site: http://learn.getgrav.org/plugins/event-hooks
-     *
-     * @param Event $e
-     */
-    public function onPageContentRaw(Event $e)
+    public function onPageInitialized()
     {
-        // Get a variable from the plugin configuration
-        $text = $this->grav['config']->get('plugins.elasticsearch.text_var');
+        $this->setHeaders();
 
-        // Get the current raw content
-        $content = $e['page']->getRawContent();
+        $body = [];
 
-        // Prepend the output with the custom text and set back on the page
-        $e['page']->setRawContent($text . "\n\n" . $content);
+        $search = $_POST['search'];
+
+        // TODO: Use config data to create
+        $clientES = ClientBuilder::create()->build();
+
+        $params = [
+            'index' => $this->config->get('plugins.elasticsearch.elasticsearch.index') ?? 'data',
+            'type' => $this->config->get('plugins.elasticsearch.elasticsearch.type') ?? 'pages',
+            'body' => [
+                'query' => [
+                    'bool' => [
+                        'should' => [
+                            ['match' => ['content' => $search]],
+                            ['match' => ['title' => $search]],
+                        ],
+                    ],
+                ],
+                'size' => $this->config->get('plugins.elasticsearch.maxNumberOfResults') ?? 10
+            ],
+        ];
+
+        $searchRes = $clientES->search($params);
+
+        $res = $this->parseES($searchRes);
+
+        echo \json_encode($res);
+
+        exit;
+    }
+
+    private function parseES(array $result): array
+    {
+        if(empty($result) || empty($result['hits']) || empty($result['hits']['total'])) {
+            return ['total' => 0];
+        }
+
+        $res = [];
+
+        foreach($result['hits']['hits'] as $page) {
+            $res[] = [
+                'score' => $page['_score'] ?? null,
+                'title' => $page['_source']['title'] ?? null,
+                'content' => $page['_source']['content'] ?? null,
+            ];
+        }
+
+        return $res;
+    }
+
+    private function setHeaders()
+    {
+        \header('Content-type: application/json');
+    }
+
+    private function getMethod(): string
+    {
+        if (empty($_SERVER)) {
+            return 'cli';
+        }
+
+        if (empty($_SERVER['REQUEST_METHOD'])) {
+            return 'cli';
+        }
+
+        return \strtolower($_SERVER['REQUEST_METHOD']);
     }
 }
