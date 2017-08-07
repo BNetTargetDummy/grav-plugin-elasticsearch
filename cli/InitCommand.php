@@ -2,6 +2,7 @@
 
 namespace Grav\Plugin\Console;
 
+use Elasticsearch\ClientBuilder;
 use Grav\Common\Grav;
 use Grav\Common\Page\Collection;
 use Grav\Console\ConsoleCommand;
@@ -13,7 +14,19 @@ class InitCommand extends ConsoleCommand
 {
     private $host;
     private $force;
+
+    /** @var \Elasticsearch\Client */
+    private $clientES;
+
     private $route = array();
+
+    public function __construct($name = null)
+    {
+        parent::__construct($name);
+
+        // TODO: Use config data to create
+        $this->clientES = ClientBuilder::create()->build();
+    }
 
     protected function configure()
     {
@@ -40,7 +53,7 @@ class InitCommand extends ConsoleCommand
 
         $this->force = $this->input->getOption('force');
 
-        if($this->force) {
+        if ($this->force) {
             $this->clearDatabase();
         }
 
@@ -68,18 +81,41 @@ class InitCommand extends ConsoleCommand
     private function clearDatabase(): void
     {
         $this->output->writeln('<red>Clearing the database</red>');
+        $this->clientES->deleteByQuery([
+            'index' => 'blog',
+            'type' => 'page',
+            'body' => [
+                'query' => [
+                    'match_all' => new \stdClass(),
+                ],
+            ],
+        ]);
     }
 
     /**
      * @param string $route
      * @param string $title
      * @param string $content
-     * @return bool
      */
-    private function addOrUpdateToElasticSearch(string $route, string $title, string $content): bool
+    private function addOrUpdateToElasticSearch(string $route, string $title, string $content)
     {
-        $this->output->writeln($content);
-        return false;
+        $this->output->writeln('<cyan> Count in ES: ' . $this->clientES->count()['count']);
+
+        $params = [
+            'index' => 'blog',
+            'type' => 'page',
+            'id' => $route,
+            'body' => [
+                'doc_as_upsert' => true,
+                'doc' => [
+                    'title' => $title,
+                    'content' => $content,
+                ],
+            ],
+        ];
+
+        $response = $this->clientES->update($params);
+        $this->output->writeln(\json_encode($response));
     }
 
     /**
@@ -120,7 +156,7 @@ class InitCommand extends ConsoleCommand
 
         $isWithArticle = $crawler->filter('article.content')->count();
 
-        if($isWithArticle) {
+        if ($isWithArticle) {
             $content = $crawler->filter('article.content');
         } else {
             $content = $crawler->filter('div.container');
