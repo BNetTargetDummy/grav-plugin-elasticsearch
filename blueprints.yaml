@@ -43,15 +43,16 @@ form:
 
         base:
           type: tab
-          title: Connection
+          title: Hosts
           fields:
 
-            connection:
-              type: section
-              title: Connection
+            base.hosts:
+              type: list
+              style: vertical
+              title: Hosts
               fields:
 
-                base.connection.scheme:
+                .scheme:
                   type: select
                   label: Transport Scheme
                   classes: fancy
@@ -59,33 +60,28 @@ form:
                   options:
                     'https': 'https'
                     'http': 'http'
-                base.connection.host:
+                .host:
                   type: text
                   label: Host
                   default: localhost
                   validate:
                     type: string
-                base.connection.port:
+                .port:
                   type: text
                   label: Port
                   default: 9200
                   validate:
                     type: string
-                base.connection.user:
+                .connection.user:
                   type: text
                   label: User
                   placeholder: user
                   validate:
                     type: string
-                base.connection.password:
+                .connection.password:
                   type: password
                   label: Password
                   placeholder: password
                   validate:
                     type: string
-
-            connection:
-              type: section
-              title: Connection
-              fields:
 
