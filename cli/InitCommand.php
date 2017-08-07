@@ -82,8 +82,8 @@ class InitCommand extends ConsoleCommand
     {
         $this->output->writeln('<red>Clearing the database</red>');
         $this->clientES->deleteByQuery([
-            'index' => 'blog',
-            'type' => 'page',
+            'index' => 'targetdummy',
+            'type' => 'pages',
             'body' => [
                 'query' => [
                     'match_all' => new \stdClass(),
@@ -102,8 +102,8 @@ class InitCommand extends ConsoleCommand
         $this->output->writeln('<cyan> Count in ES: ' . $this->clientES->count()['count']);
 
         $params = [
-            'index' => 'blog',
-            'type' => 'page',
+            'index' => 'targetdummy',
+            'type' => 'pages',
             'id' => $route,
             'body' => [
                 'doc_as_upsert' => true,
