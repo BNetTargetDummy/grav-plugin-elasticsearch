@@ -15,17 +15,77 @@ license: MIT
 form:
   validation: strict
   fields:
-    enabled:
-      type: toggle
-      label: Plugin status
-      highlight: 1
-      default: 0
-      options:
-        1: Enabled
-        0: Disabled
-      validate:
-        type: bool
-    text_var:
-      type: text
-      label: Text Variable
-      help: Text to add to the top of a page
+    tabs:
+      type: tabs
+      active: 1
+
+      fields:
+
+        general:
+          type: tab
+          title: Features
+          fields:
+
+            enabled:
+              type: toggle
+              label: Plugin status
+              highlight: 1
+              default: 0
+              options:
+                1: Enabled
+                0: Disabled
+              validate:
+                type: bool
+            disabled_text:
+              type: text
+              label: Disabled text
+              help: Text to add to the top of a page
+
+        base:
+          type: tab
+          title: Connection
+          fields:
+
+            connection:
+              type: section
+              title: Connection
+              fields:
+
+                base.connection.scheme:
+                  type: select
+                  label: Transport Scheme
+                  classes: fancy
+                  default: https
+                  options:
+                    'https': 'https'
+                    'http': 'http'
+                base.connection.host:
+                  type: text
+                  label: Host
+                  default: localhost
+                  validate:
+                    type: string
+                base.connection.port:
+                  type: text
+                  label: Port
+                  default: 9200
+                  validate:
+                    type: string
+                base.connection.user:
+                  type: text
+                  label: User
+                  placeholder: user
+                  validate:
+                    type: string
+                base.connection.password:
+                  type: password
+                  label: Password
+                  placeholder: password
+                  validate:
+                    type: string
+
+            connection:
+              type: section
+              title: Connection
+              fields:
+
