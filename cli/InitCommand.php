@@ -82,8 +82,8 @@ class InitCommand extends ConsoleCommand
     {
         $this->output->writeln('<red>Clearing the database</red>');
         $this->clientES->deleteByQuery([
-            'index' => 'targetdummy',
-            'type' => 'pages',
+            'index' => Grav::instance()['config']->get('plugins.elasticsearch.elasticsearch.index') ?? 'data',
+            'type' => Grav::instance()['config']->get('plugins.elasticsearch.elasticsearch.type') ?? 'pages',
             'body' => [
                 'query' => [
                     'match_all' => new \stdClass(),
@@ -102,8 +102,8 @@ class InitCommand extends ConsoleCommand
         $this->output->writeln('<cyan> Count in ES: ' . $this->clientES->count()['count']);
 
         $params = [
-            'index' => 'targetdummy',
-            'type' => 'pages',
+            'index' => Grav::instance()['config']->get('plugins.elasticsearch.elasticsearch.index') ?? 'data',
+            'type' => Grav::instance()['config']->get('plugins.elasticsearch.elasticsearch.pages') ?? 'pages',
             'id' => $route,
             'body' => [
                 'doc_as_upsert' => true,
